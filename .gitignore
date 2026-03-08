@@ -1,0 +1,41 @@
+# Rust
+/target/
+
+# Cargo metadata backups
+**/*.rs.bk
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment
+.env
+.env.*
+*.local
+
+# Diagnostic artifacts and scratch files
+*.dmp
+*.core
+*.stackdump
+*.log
+*.tmp
+*.temp
+
+# Local screenshots/recordings captured during development
+scratch-*.png
+scratch-*.gif
+capture-*.png
+capture-*.gif
+
+# Binaries
+*.exe
+*.dll
+*.pdb
+*.msi
