@@ -9,14 +9,14 @@ A Windows-first diagnostic CLI that identifies likely bottlenecks, explains the 
 ## Install
 
 1. GitHub Releases (recommended for most users)
-   - Download the latest `whyslow-windows-x86_64.exe` from the project Releases page.
+   - Download the latest `whyslow-windows-x86_64.exe` from [GitHub Releases](https://github.com/MuhammedZohaib/whyslow/releases).
 2. crates.io
    ```powershell
    cargo install whyslow
    ```
 3. Build from source
    ```powershell
-   git clone <repo-url>
+   git clone https://github.com/MuhammedZohaib/whyslow.git
    cd whyslow
    cargo build --release
    .\target\release\whyslow.exe
@@ -107,3 +107,5 @@ See [SECURITY.md](SECURITY.md). `whyslow` performs local-only analysis and does 
 ## License
 
 Licensed under MIT OR Apache-2.0. See [LICENSE](LICENSE).
+
+
