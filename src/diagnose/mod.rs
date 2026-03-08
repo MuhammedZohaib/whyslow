@@ -166,7 +166,9 @@ fn aggregate_offenders(samples: &[Sample]) -> Vec<OffenderSummary> {
             if proc.memory_bytes.unwrap_or(0) > entry.memory_bytes.unwrap_or(0) {
                 entry.memory_bytes = proc.memory_bytes;
             }
-            if proc.io_read_bytes_per_sec.unwrap_or(0.0) > entry.io_read_bytes_per_sec.unwrap_or(0.0) {
+            if proc.io_read_bytes_per_sec.unwrap_or(0.0)
+                > entry.io_read_bytes_per_sec.unwrap_or(0.0)
+            {
                 entry.io_read_bytes_per_sec = proc.io_read_bytes_per_sec;
             }
             if proc.io_write_bytes_per_sec.unwrap_or(0.0)
@@ -183,9 +185,7 @@ fn aggregate_offenders(samples: &[Sample]) -> Vec<OffenderSummary> {
 
         for (_key, proc) in deduped_processes {
             let (family, display_name) = process_family(&proc);
-            let entry = sample_families
-                .entry(family.clone())
-                .or_insert_with(FamilySampleAccumulator::default);
+            let entry = sample_families.entry(family.clone()).or_default();
 
             entry.family = family;
             entry.name = display_name;
@@ -223,9 +223,7 @@ fn aggregate_offenders(samples: &[Sample]) -> Vec<OffenderSummary> {
         }
 
         for (family, fam) in sample_families {
-            let acc = aggregates
-                .entry(family.clone())
-                .or_insert_with(OffenderAccumulator::default);
+            let acc = aggregates.entry(family.clone()).or_default();
 
             acc.family = family;
             acc.name = fam.name;
@@ -319,10 +317,7 @@ fn process_family(process: &ProcessSample) -> (String, String) {
     }
 
     if lowered.contains("docker") {
-        return (
-            "dev.docker".to_string(),
-            "Docker Desktop Stack".to_string(),
-        );
+        return ("dev.docker".to_string(), "Docker Desktop Stack".to_string());
     }
     if lowered.contains("vmmem") || lowered.contains("wsl") {
         return ("dev.wsl".to_string(), "WSL / vmmem".to_string());

@@ -93,8 +93,8 @@ fn text_report_matches_snapshot_fixture() {
         unavailable_metrics: vec![],
     };
 
-    let rendered = whyslow::report::text::render(&report);
-    let expected = include_str!("fixtures/report_snapshot.txt");
+    let rendered = whyslow::report::text::render(&report).replace("\r\n", "\n");
+    let expected = include_str!("fixtures/report_snapshot.txt").replace("\r\n", "\n");
     let expected = expected.trim_start_matches('\u{feff}');
     assert_eq!(rendered.trim(), expected.trim());
 }

@@ -1,4 +1,4 @@
-﻿pub mod json;
+pub mod json;
 pub mod markdown;
 pub mod text;
 pub mod tui;
@@ -8,7 +8,11 @@ use chrono::Utc;
 use crate::model::{AnalysisResult, CollectionWindow, Report, RunConfig};
 
 /// Build the final report object from raw collection and analysis output.
-pub fn build_report(config: RunConfig, window: CollectionWindow, analysis: AnalysisResult) -> Report {
+pub fn build_report(
+    config: RunConfig,
+    window: CollectionWindow,
+    analysis: AnalysisResult,
+) -> Report {
     let sample_window_secs = (window.ended_at - window.started_at)
         .to_std()
         .map(|d| d.as_secs())

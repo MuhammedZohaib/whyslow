@@ -1,4 +1,4 @@
-﻿#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub(crate) struct DiskDeviceMetric {
     pub key: String,
     pub label: String,
@@ -23,8 +23,8 @@ mod imp {
     use windows::core::{w, PCWSTR, PWSTR};
     use windows::Win32::System::Performance::{
         PdhAddEnglishCounterW, PdhCloseQuery, PdhCollectQueryData, PdhEnumObjectItemsW,
-        PdhGetFormattedCounterValue, PdhOpenQueryW, PERF_DETAIL_WIZARD, PDH_CSTATUS_NEW_DATA,
-        PDH_CSTATUS_VALID_DATA, PDH_FMT_COUNTERVALUE, PDH_FMT_DOUBLE, PDH_MORE_DATA,
+        PdhGetFormattedCounterValue, PdhOpenQueryW, PDH_CSTATUS_NEW_DATA, PDH_CSTATUS_VALID_DATA,
+        PDH_FMT_COUNTERVALUE, PDH_FMT_DOUBLE, PDH_MORE_DATA, PERF_DETAIL_WIZARD,
     };
 
     use super::{DiskDeviceMetric, DiskTotals};
@@ -143,14 +143,23 @@ mod imp {
         }
     }
 
-    unsafe fn build_instance_counters(query: isize, instance: &str) -> Option<DiskInstanceCounters> {
+    unsafe fn build_instance_counters(
+        query: isize,
+        instance: &str,
+    ) -> Option<DiskInstanceCounters> {
         let busy_counter = add_counter(query, &format!("\\PhysicalDisk({instance})\\% Disk Time"))?;
-        let latency_counter =
-            add_counter(query, &format!("\\PhysicalDisk({instance})\\Avg. Disk sec/Transfer"))?;
-        let read_counter =
-            add_counter(query, &format!("\\PhysicalDisk({instance})\\Disk Read Bytes/sec"))?;
-        let write_counter =
-            add_counter(query, &format!("\\PhysicalDisk({instance})\\Disk Write Bytes/sec"))?;
+        let latency_counter = add_counter(
+            query,
+            &format!("\\PhysicalDisk({instance})\\Avg. Disk sec/Transfer"),
+        )?;
+        let read_counter = add_counter(
+            query,
+            &format!("\\PhysicalDisk({instance})\\Disk Read Bytes/sec"),
+        )?;
+        let write_counter = add_counter(
+            query,
+            &format!("\\PhysicalDisk({instance})\\Disk Write Bytes/sec"),
+        )?;
 
         Some(DiskInstanceCounters {
             key: normalize_instance_key(instance),
@@ -272,9 +281,9 @@ impl WindowsCollector {
     pub(crate) fn new() -> Self {
         #[cfg(windows)]
         {
-            return Self {
+            Self {
                 disk_query: imp::DiskQuery::new(),
-            };
+            }
         }
 
         #[cfg(not(windows))]
@@ -289,7 +298,7 @@ impl WindowsCollector {
             if let Some(query) = self.disk_query.as_mut() {
                 return query.sample();
             }
-            return (DiskTotals::default(), Vec::new());
+            (DiskTotals::default(), Vec::new())
         }
 
         #[cfg(not(windows))]

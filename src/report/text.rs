@@ -98,7 +98,10 @@ pub fn render(report: &Report) -> String {
             ));
             out.push_str(&format!("   Explanation: {}\n", diagnosis.explanation));
             for evidence in &diagnosis.evidence {
-                out.push_str(&format!("   Evidence: {} -> {}\n", evidence.label, evidence.detail));
+                out.push_str(&format!(
+                    "   Evidence: {} -> {}\n",
+                    evidence.label, evidence.detail
+                ));
             }
             if diagnosis.partial_evidence {
                 out.push_str("   Evidence quality: partial (some metrics unavailable)\n");

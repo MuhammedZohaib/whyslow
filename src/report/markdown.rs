@@ -8,12 +8,24 @@ pub fn render(report: &Report) -> String {
         "- Generated: {}\n",
         report.generated_at.format("%Y-%m-%d %H:%M:%S UTC")
     ));
-    out.push_str(&format!("- Samples: {} over {}s\n", report.sample_count, report.sample_window_secs));
+    out.push_str(&format!(
+        "- Samples: {} over {}s\n",
+        report.sample_count, report.sample_window_secs
+    ));
     out.push_str(&format!(
         "- Host: {} | {} {}\n\n",
-        report.host.hostname.clone().unwrap_or_else(|| "unknown-host".to_string()),
-        report.host.os_name.clone().unwrap_or_else(|| "unknown-os".to_string()),
-        report.host
+        report
+            .host
+            .hostname
+            .clone()
+            .unwrap_or_else(|| "unknown-host".to_string()),
+        report
+            .host
+            .os_name
+            .clone()
+            .unwrap_or_else(|| "unknown-os".to_string()),
+        report
+            .host
             .os_version
             .clone()
             .unwrap_or_else(|| "unknown-version".to_string())

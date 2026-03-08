@@ -58,7 +58,11 @@ fn run_watch_loop_json(config: RunConfig, watch_seconds: u64) -> Result<()> {
         let now = Instant::now();
         if next_run > now {
             let sleep_for = next_run - now;
-            info!(watch_seconds, sleep_ms = sleep_for.as_millis() as u64, "sleeping before next run");
+            info!(
+                watch_seconds,
+                sleep_ms = sleep_for.as_millis() as u64,
+                "sleeping before next run"
+            );
             thread::sleep(sleep_for);
         } else {
             // If a run took longer than cadence, trigger next run immediately and rebase.
@@ -92,9 +96,7 @@ fn export_report(path: &str, report: &whyslow::model::Report, config: &RunConfig
 
     let content = if ext == "md" || ext == "markdown" {
         whyslow::report::markdown::render(report)
-    } else if ext == "json" {
-        whyslow::report::json::render(report)?
-    } else if config.json_output {
+    } else if ext == "json" || config.json_output {
         whyslow::report::json::render(report)?
     } else {
         whyslow::report::markdown::render(report)

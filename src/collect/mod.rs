@@ -130,9 +130,9 @@ pub fn unavailable_metrics_from_samples(samples: &[Sample]) -> Vec<String> {
     });
     let saw_disk_busy = samples.iter().any(|s| s.disk.busy_percent.is_some());
     let saw_disk_latency = samples.iter().any(|s| s.disk.avg_latency_ms.is_some());
-    let saw_network = samples.iter().any(|s| {
-        s.network.down_bytes_per_sec.is_some() || s.network.up_bytes_per_sec.is_some()
-    });
+    let saw_network = samples
+        .iter()
+        .any(|s| s.network.down_bytes_per_sec.is_some() || s.network.up_bytes_per_sec.is_some());
 
     if !saw_cpu {
         unavailable.insert("overall_cpu_usage".to_string());
@@ -172,7 +172,11 @@ fn build_sample(
         let total = system.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>();
         Some(total / system.cpus().len() as f32)
     };
-    let cpu_per_core_percent = system.cpus().iter().map(|cpu| cpu.cpu_usage()).collect::<Vec<_>>();
+    let cpu_per_core_percent = system
+        .cpus()
+        .iter()
+        .map(|cpu| cpu.cpu_usage())
+        .collect::<Vec<_>>();
 
     let memory_total = system.total_memory();
     let memory_used = system.used_memory();
@@ -181,7 +185,11 @@ fn build_sample(
     let (memory_total_bytes, memory_used_bytes, memory_available_bytes) = if memory_total == 0 {
         (None, None, None)
     } else {
-        (Some(memory_total), Some(memory_used), Some(memory_available))
+        (
+            Some(memory_total),
+            Some(memory_used),
+            Some(memory_available),
+        )
     };
 
     let mut processes = Vec::new();
@@ -255,7 +263,11 @@ fn build_sample(
     top_processes_cpu.truncate(top_n);
 
     let mut top_processes_memory = processes.clone();
-    top_processes_memory.sort_by(|a, b| b.memory_bytes.unwrap_or(0).cmp(&a.memory_bytes.unwrap_or(0)));
+    top_processes_memory.sort_by(|a, b| {
+        b.memory_bytes
+            .unwrap_or(0)
+            .cmp(&a.memory_bytes.unwrap_or(0))
+    });
     top_processes_memory.truncate(top_n);
 
     let total_read_rate = processes
@@ -267,9 +279,9 @@ fn build_sample(
         .filter_map(|p| p.io_write_bytes_per_sec)
         .sum::<f64>();
 
-    let process_io_available = processes.iter().any(|p| {
-        p.io_read_bytes_per_sec.is_some() || p.io_write_bytes_per_sec.is_some()
-    });
+    let process_io_available = processes
+        .iter()
+        .any(|p| p.io_read_bytes_per_sec.is_some() || p.io_write_bytes_per_sec.is_some());
 
     let (disk_totals, windows_devices) = windows_collector.query_disk_metrics();
     let disk_devices = merge_disk_devices(disks, windows_devices);
@@ -407,7 +419,7 @@ fn normalize_process_cpu(raw: f32, cpu_core_count: usize) -> f32 {
         return raw.max(0.0);
     }
 
-    // sysinfo process CPU may be up to (core_count * 100). Normalize to total machine %. 
+    // sysinfo process CPU may be up to (core_count * 100). Normalize to total machine %.
     (raw / cpu_core_count as f32).clamp(0.0, 100.0)
 }
 
@@ -442,4 +454,3 @@ fn is_dev_tool_process(name: &str) -> bool {
         || name.contains("devenv")
         || name.contains("code")
 }
-
