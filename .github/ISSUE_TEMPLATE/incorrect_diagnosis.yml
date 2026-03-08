@@ -1,0 +1,55 @@
+name: Incorrect diagnosis
+description: Report a false positive or false negative diagnosis
+labels: ["bug", "diagnosis-engine"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for cases where whyslow's diagnosis did not match reality.
+  - type: input
+    id: version
+    attributes:
+      label: whyslow version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version
+      placeholder: Windows 11 23H2
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command used
+      placeholder: whyslow --duration 30 --json
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      placeholder: Drag/drop screenshot or paste image URL
+    validations:
+      required: true
+  - type: textarea
+    id: exported_json
+    attributes:
+      label: Exported JSON
+      placeholder: Paste or attach sanitized JSON report
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected diagnosis
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual diagnosis
+    validations:
+      required: true
