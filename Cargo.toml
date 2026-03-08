@@ -7,6 +7,7 @@ description = "Windows terminal tool that explains why a PC feels slow and sugge
 readme = "README.md"
 keywords = ["windows", "diagnostics", "performance", "cli"]
 categories = ["command-line-utilities", "os::windows-apis"]
+repository = "https://github.com/MuhammedZohaib/whyslow"
 
 [dependencies]
 anyhow = "1.0"
