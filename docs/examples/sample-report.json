@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-01-15T10:30:00Z",
+  "config": {
+    "sample_window_secs": 20,
+    "interval_ms": 500,
+    "top_n": 5,
+    "json_output": true,
+    "watch_seconds": null,
+    "export_path": null,
+    "verbose": 0
+  },
+  "host": {
+    "hostname": "workstation-01",
+    "os_name": "Windows",
+    "os_version": "11 Pro",
+    "kernel_version": "10.0.22631"
+  },
+  "sample_count": 40,
+  "sample_window_secs": 20,
+  "diagnoses": [
+    {
+      "kind": "cpu_saturation",
+      "confidence": 0.91,
+      "duration_seconds": 18.0,
+      "explanation": "CPU stayed high during most of the sampling window, and a small set of processes consumed a large share of compute time.",
+      "partial_evidence": false
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#0f172a"/>
+  <rect x="40" y="40" width="1120" height="620" rx="14" fill="#020617" stroke="#334155" stroke-width="2"/>
+  <rect x="40" y="40" width="1120" height="42" rx="14" fill="#111827"/>
+  <circle cx="70" cy="61" r="7" fill="#ef4444"/>
+  <circle cx="95" cy="61" r="7" fill="#f59e0b"/>
+  <circle cx="120" cy="61" r="7" fill="#22c55e"/>
+  <text x="560" y="67" fill="#94a3b8" font-size="16" font-family="Consolas, 'Courier New', monospace">whyslow terminal output</text>
+
+  <g font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#e2e8f0">
+    <text x="70" y="130">whyslow report</text>
+    <text x="70" y="165">=============</text>
+    <text x="70" y="200" fill="#cbd5e1">Generated: 2026-03-09 12:00:00 UTC</text>
+    <text x="70" y="230" fill="#cbd5e1">Samples: 40 over 20s | Host: workstation-01 | Windows 11 Pro</text>
+
+    <text x="70" y="280" fill="#93c5fd">1) System Summary</text>
+    <text x="90" y="315">CPU avg/peak: 84.1% / 97.5%</text>
+    <text x="90" y="345">Memory avg/peak: 82.8% / 90.2%</text>
+    <text x="90" y="375">Disk busy avg/peak: 81.0% / 95.1%</text>
+
+    <text x="70" y="430" fill="#93c5fd">2) Likely Bottlenecks (Ranked)</text>
+    <text x="90" y="465" fill="#fde68a">1. cpu_saturation (confidence 88%, duration 17s)</text>
+    <text x="90" y="495">2. disk_contention (confidence 64%, duration 14s)</text>
+
+    <text x="70" y="550" fill="#93c5fd">4) Suggested Actions</text>
+    <text x="90" y="585">- Pause or close the top CPU-heavy process first</text>
+    <text x="90" y="615">- Defer indexing or scan-heavy tasks during active work</text>
+  </g>
+</svg>

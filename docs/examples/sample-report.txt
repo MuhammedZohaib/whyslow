@@ -1,0 +1,26 @@
+whyslow report
+=============
+Generated: 2026-01-15 10:30:00 UTC
+Samples: 40 over 20s
+Host: workstation-01 | Windows 11 Pro
+
+1) System Summary
+- CPU avg/peak: 89.2% / 98.7%
+- Memory avg/peak used: 86.1% / 92.4%
+- Avg process count: 254.0
+- Disk read/write: 45.0 MB/s / 12.0 MB/s
+- Disk busy avg/peak: 87.4% / 98.2%
+- Disk latency avg/peak: 24.5 ms / 80.0 ms
+- Network down/up avg: 2.5 MB/s / 0.8 MB/s
+
+2) Likely Bottlenecks (Ranked)
+1. cpu_saturation (confidence 91%, duration 18s)
+   Explanation: CPU stayed high during most of the sampling window, and a small set of processes consumed a large share of compute time.
+   Evidence: Average CPU usage -> 89.2%
+   Evidence: Top CPU offenders -> Chrome Browser (avg CPU 55.0%, procs 8, hits 40)
+
+3) Top Offenders (Grouped Families)
+- Chrome Browser [browser.chrome] rep PID 4500: avg CPU 55.0%, peak CPU 89.0%, avg mem 2.40 GB, avg I/O R 20.0 MB/s W 6.0 MB/s, members chrome.exe, chrome_helper.exe
+
+4) Suggested Actions
+- Pause or close the top CPU-heavy process first (why: A single dominant process often provides immediate responsiveness gains.)
