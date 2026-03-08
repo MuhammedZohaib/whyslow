@@ -131,7 +131,9 @@ impl WatchState {
         );
 
         let mem = match (sample.memory_used_bytes, sample.memory_total_bytes) {
-            (Some(used), Some(total)) if total > 0 => Some(((used as f64 * 100.0 / total as f64) as u64).min(100)),
+            (Some(used), Some(total)) if total > 0 => {
+                Some(((used as f64 * 100.0 / total as f64) as u64).min(100))
+            }
             _ => None,
         };
         push_metric(&mut self.mem_trend, mem, self.trend_capacity);
@@ -145,7 +147,8 @@ impl WatchState {
         let net_total_mbps = (sample.network.down_bytes_per_sec.unwrap_or(0.0)
             + sample.network.up_bytes_per_sec.unwrap_or(0.0))
             / (1024.0 * 1024.0);
-        self.net_trend_mbps.push_back(net_total_mbps.round().max(0.0) as u64);
+        self.net_trend_mbps
+            .push_back(net_total_mbps.round().max(0.0) as u64);
         while self.net_trend_mbps.len() > self.trend_capacity {
             self.net_trend_mbps.pop_front();
         }
@@ -191,7 +194,10 @@ fn watch_loop(
 
         if analysis_due && !ring.is_empty() {
             let samples: Vec<Sample> = ring.iter().cloned().collect();
-            let started_at = samples.first().map(|s| s.timestamp).unwrap_or_else(Utc::now);
+            let started_at = samples
+                .first()
+                .map(|s| s.timestamp)
+                .unwrap_or_else(Utc::now);
             let ended_at = samples.last().map(|s| s.timestamp).unwrap_or_else(Utc::now);
 
             let window = CollectionWindow {
@@ -325,8 +331,18 @@ fn draw_ui(frame: &mut Frame<'_>, state: &WatchState, interval_ms: u64, watch_se
     match state.main_view {
         MainView::Diagnosis => draw_diagnosis_view(frame, chunks[2], state),
         MainView::Disk => draw_disk_view(frame, chunks[2], state.latest_sample.as_ref()),
-        MainView::Process => draw_process_view(frame, chunks[2], state.latest_sample.as_ref(), state.process_filter),
-        MainView::Network => draw_network_view(frame, chunks[2], state.latest_sample.as_ref(), &state.net_trend_mbps),
+        MainView::Process => draw_process_view(
+            frame,
+            chunks[2],
+            state.latest_sample.as_ref(),
+            state.process_filter,
+        ),
+        MainView::Network => draw_network_view(
+            frame,
+            chunks[2],
+            state.latest_sample.as_ref(),
+            &state.net_trend_mbps,
+        ),
     }
 
     draw_actions_panel(frame, chunks[3], state.report.as_ref());
@@ -364,8 +380,12 @@ fn draw_summary_and_trends(frame: &mut Frame<'_>, area: Rect, state: &WatchState
         let host = &report.host;
         summary_lines.push(Line::from(format!(
             "Host: {} | {} {}",
-            host.hostname.clone().unwrap_or_else(|| "unknown-host".to_string()),
-            host.os_name.clone().unwrap_or_else(|| "unknown-os".to_string()),
+            host.hostname
+                .clone()
+                .unwrap_or_else(|| "unknown-host".to_string()),
+            host.os_name
+                .clone()
+                .unwrap_or_else(|| "unknown-os".to_string()),
             host.os_version
                 .clone()
                 .unwrap_or_else(|| "unknown-version".to_string())
@@ -427,7 +447,10 @@ fn draw_summary_and_trends(frame: &mut Frame<'_>, area: Rect, state: &WatchState
             summary_lines.push(Line::from(pressure_bar("CPU", sample.cpu_total_percent)));
             summary_lines.push(Line::from(pressure_bar("Memory", current_mem)));
             summary_lines.push(Line::from(pressure_bar("Disk", sample.disk.busy_percent)));
-            summary_lines.push(Line::from(pressure_bar("Network", network_pressure_percent(sample))));
+            summary_lines.push(Line::from(pressure_bar(
+                "Network",
+                network_pressure_percent(sample),
+            )));
             summary_lines.push(Line::from(busiest_disk_line(sample)));
         }
 
@@ -469,7 +492,11 @@ fn draw_summary_and_trends(frame: &mut Frame<'_>, area: Rect, state: &WatchState
     }
 
     let summary = Paragraph::new(summary_lines)
-        .block(Block::default().borders(Borders::ALL).title("System Context"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("System Context"),
+        )
         .wrap(Wrap { trim: true });
     frame.render_widget(summary, columns[0]);
 
@@ -526,7 +553,12 @@ fn draw_trend_card(
         .split(area);
 
     let data: Vec<u64> = trend.iter().copied().collect();
-    let max_value = data.iter().copied().max().unwrap_or(default_max).max(default_max);
+    let max_value = data
+        .iter()
+        .copied()
+        .max()
+        .unwrap_or(default_max)
+        .max(default_max);
 
     let spark = Sparkline::default()
         .block(Block::default().borders(Borders::ALL).title(title))
@@ -616,9 +648,9 @@ fn busiest_disk_line(sample: &Sample) -> String {
 
     for disk in &sample.disk_devices {
         let busy = disk.busy_percent.unwrap_or(0.0) as f64;
-        let throughput_mb =
-            (disk.read_bytes_per_sec.unwrap_or(0.0) + disk.write_bytes_per_sec.unwrap_or(0.0))
-                / (1024.0 * 1024.0);
+        let throughput_mb = (disk.read_bytes_per_sec.unwrap_or(0.0)
+            + disk.write_bytes_per_sec.unwrap_or(0.0))
+            / (1024.0 * 1024.0);
         let latency = disk.avg_latency_ms.unwrap_or(0.0) as f64;
         let score = busy + (throughput_mb * 0.45) + (latency * 0.30);
 
@@ -689,26 +721,46 @@ fn draw_diagnosis_view(frame: &mut Frame<'_>, area: Rect, state: &WatchState) {
         ],
     )
     .header(
-        Row::new(vec!["Diagnosis", "Confidence", "Duration", "Why this diagnosis"])
-            .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Row::new(vec![
+            "Diagnosis",
+            "Confidence",
+            "Duration",
+            "Why this diagnosis",
+        ])
+        .style(
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
-    .block(Block::default().borders(Borders::ALL).title("Likely Bottlenecks"));
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("Likely Bottlenecks"),
+    );
 
     frame.render_widget(table, cols[0]);
     draw_offending_panel(frame, cols[1], state.latest_sample.as_ref());
 }
 
 fn draw_offending_panel(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sample>) {
-    let processes = sample.map(|s| ranked_processes(s, ProcessFilter::All)).unwrap_or_default();
+    let processes = sample
+        .map(|s| ranked_processes(s, ProcessFilter::All))
+        .unwrap_or_default();
 
     let mut rows = Vec::new();
     for proc in processes.into_iter().take(10) {
-        let io = proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0);
+        let io =
+            proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0);
         rows.push(Row::new(vec![
             Cell::from(proc.pid.to_string()),
             Cell::from(proc.name),
             Cell::from(fmt_opt_percent(proc.cpu_percent)),
-            Cell::from(proc.memory_bytes.map(format_bytes_human).unwrap_or_else(|| "n/a".to_string())),
+            Cell::from(
+                proc.memory_bytes
+                    .map(format_bytes_human)
+                    .unwrap_or_else(|| "n/a".to_string()),
+            ),
             Cell::from(format_mbps(io)),
         ]));
     }
@@ -734,10 +786,17 @@ fn draw_offending_panel(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sampl
         ],
     )
     .header(
-        Row::new(vec!["PID", "Name", "CPU", "Mem", "Disk R/W"])
-            .style(Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Row::new(vec!["PID", "Name", "CPU", "Mem", "Disk R/W"]).style(
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
-    .block(Block::default().borders(Borders::ALL).title("Top Offending Processes"));
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("Top Offending Processes"),
+    );
 
     frame.render_widget(table, area);
 }
@@ -748,7 +807,10 @@ fn draw_disk_view(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sample>) {
         for disk in &sample.disk_devices {
             let used = match (disk.total_bytes, disk.available_bytes) {
                 (Some(total), Some(avail)) if total > 0 => {
-                    format!("{:.1}%", ((total - avail) as f64 * 100.0 / total as f64).clamp(0.0, 100.0))
+                    format!(
+                        "{:.1}%",
+                        ((total - avail) as f64 * 100.0 / total as f64).clamp(0.0, 100.0)
+                    )
                 }
                 _ => "n/a".to_string(),
             };
@@ -787,25 +849,44 @@ fn draw_disk_view(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sample>) {
         ],
     )
     .header(
-        Row::new(vec!["Drive", "Busy", "Read", "Write", "Latency", "Used"])
-            .style(Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD)),
+        Row::new(vec!["Drive", "Busy", "Read", "Write", "Latency", "Used"]).style(
+            Style::default()
+                .fg(Color::LightBlue)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
-    .block(Block::default().borders(Borders::ALL).title("Disk Breakdown"));
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("Disk Breakdown"),
+    );
 
     frame.render_widget(table, area);
 }
 
-fn draw_process_view(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sample>, filter: ProcessFilter) {
-    let processes = sample.map(|s| ranked_processes(s, filter)).unwrap_or_default();
+fn draw_process_view(
+    frame: &mut Frame<'_>,
+    area: Rect,
+    sample: Option<&Sample>,
+    filter: ProcessFilter,
+) {
+    let processes = sample
+        .map(|s| ranked_processes(s, filter))
+        .unwrap_or_default();
 
     let mut rows = Vec::new();
     for proc in processes.into_iter().take(18) {
-        let io = proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0);
+        let io =
+            proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0);
         rows.push(Row::new(vec![
             Cell::from(proc.pid.to_string()),
             Cell::from(proc.name),
             Cell::from(fmt_opt_percent(proc.cpu_percent)),
-            Cell::from(proc.memory_bytes.map(format_bytes_human).unwrap_or_else(|| "n/a".to_string())),
+            Cell::from(
+                proc.memory_bytes
+                    .map(format_bytes_human)
+                    .unwrap_or_else(|| "n/a".to_string()),
+            ),
             Cell::from(format_mbps(io)),
         ]));
     }
@@ -834,8 +915,11 @@ fn draw_process_view(frame: &mut Frame<'_>, area: Rect, sample: Option<&Sample>,
         ],
     )
     .header(
-        Row::new(vec!["PID", "Name", "CPU", "Mem", "I/O"])
-            .style(Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Row::new(vec!["PID", "Name", "CPU", "Mem", "I/O"]).style(
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
     )
     .block(
         Block::default()
@@ -884,13 +968,16 @@ fn draw_network_view(
         let top_proxy = ranked_processes(sample, ProcessFilter::All)
             .into_iter()
             .max_by(|a, b| {
-                let a_io = a.io_read_bytes_per_sec.unwrap_or(0.0) + a.io_write_bytes_per_sec.unwrap_or(0.0);
-                let b_io = b.io_read_bytes_per_sec.unwrap_or(0.0) + b.io_write_bytes_per_sec.unwrap_or(0.0);
+                let a_io = a.io_read_bytes_per_sec.unwrap_or(0.0)
+                    + a.io_write_bytes_per_sec.unwrap_or(0.0);
+                let b_io = b.io_read_bytes_per_sec.unwrap_or(0.0)
+                    + b.io_write_bytes_per_sec.unwrap_or(0.0);
                 a_io.partial_cmp(&b_io).unwrap_or(std::cmp::Ordering::Equal)
             });
 
         if let Some(proc) = top_proxy {
-            let io = proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0);
+            let io = proc.io_read_bytes_per_sec.unwrap_or(0.0)
+                + proc.io_write_bytes_per_sec.unwrap_or(0.0);
             lines.push(Line::from(format!(
                 "Top network process (I/O proxy): {} {}",
                 proc.name,
@@ -941,7 +1028,11 @@ fn draw_actions_panel(frame: &mut Frame<'_>, area: Rect, report: Option<&Report>
     }
 
     let actions = Paragraph::new(lines)
-        .block(Block::default().borders(Borders::ALL).title("Suggested Actions"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Suggested Actions"),
+        )
         .wrap(Wrap { trim: true });
     frame.render_widget(actions, area);
 }
@@ -1040,7 +1131,6 @@ fn process_matches_filter(proc: &crate::model::ProcessSample, filter: ProcessFil
     }
 }
 
-
 fn ranked_processes(sample: &Sample, filter: ProcessFilter) -> Vec<crate::model::ProcessSample> {
     let mut dedup: HashMap<u32, crate::model::ProcessSample> = HashMap::new();
 
@@ -1067,14 +1157,18 @@ fn ranked_processes(sample: &Sample, filter: ProcessFilter) -> Vec<crate::model:
 
     processes
 }
-fn merge_process(existing: &mut crate::model::ProcessSample, incoming: &crate::model::ProcessSample) {
+fn merge_process(
+    existing: &mut crate::model::ProcessSample,
+    incoming: &crate::model::ProcessSample,
+) {
     if incoming.cpu_percent.unwrap_or(0.0) > existing.cpu_percent.unwrap_or(0.0) {
         existing.cpu_percent = incoming.cpu_percent;
     }
     if incoming.memory_bytes.unwrap_or(0) > existing.memory_bytes.unwrap_or(0) {
         existing.memory_bytes = incoming.memory_bytes;
     }
-    if incoming.io_read_bytes_per_sec.unwrap_or(0.0) > existing.io_read_bytes_per_sec.unwrap_or(0.0) {
+    if incoming.io_read_bytes_per_sec.unwrap_or(0.0) > existing.io_read_bytes_per_sec.unwrap_or(0.0)
+    {
         existing.io_read_bytes_per_sec = incoming.io_read_bytes_per_sec;
     }
     if incoming.io_write_bytes_per_sec.unwrap_or(0.0)
@@ -1090,7 +1184,8 @@ fn merge_process(existing: &mut crate::model::ProcessSample, incoming: &crate::m
 fn process_pressure_score(proc: &crate::model::ProcessSample) -> f64 {
     let cpu = proc.cpu_percent.unwrap_or(0.0) as f64;
     let mem_gib = proc.memory_bytes.unwrap_or(0) as f64 / (1024.0 * 1024.0 * 1024.0);
-    let io_mb = (proc.io_read_bytes_per_sec.unwrap_or(0.0) + proc.io_write_bytes_per_sec.unwrap_or(0.0))
+    let io_mb = (proc.io_read_bytes_per_sec.unwrap_or(0.0)
+        + proc.io_write_bytes_per_sec.unwrap_or(0.0))
         / (1024.0 * 1024.0);
 
     // Weighted score for "slowdown pressure" rather than CPU-only sorting.
@@ -1169,8 +1264,7 @@ fn format_mbps(v: f64) -> String {
 }
 
 fn fmt_opt_mbps(v: Option<f64>) -> String {
-    v.map(format_mbps)
-        .unwrap_or_else(|| "n/a".to_string())
+    v.map(format_mbps).unwrap_or_else(|| "n/a".to_string())
 }
 
 fn fmt_opt_ms(v: Option<f32>) -> String {
@@ -1187,8 +1281,6 @@ fn format_uptime(secs: u64) -> String {
 fn format_gib(bytes: u64) -> String {
     format!("{:.1} GiB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
 }
-
-
 
 fn export_watch_report(config: &RunConfig, report: &Report) -> Result<()> {
     let Some(path) = config.export_path.as_deref() else {
@@ -1210,12 +1302,3 @@ fn export_watch_report(config: &RunConfig, report: &Report) -> Result<()> {
     fs::write(path, content)?;
     Ok(())
 }
-
-
-
-
-
-
-
-
-

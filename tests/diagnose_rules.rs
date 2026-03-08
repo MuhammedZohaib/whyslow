@@ -1,9 +1,7 @@
 use chrono::{Duration, Utc};
 
 use whyslow::diagnose;
-use whyslow::model::{
-    CollectionWindow, HostInfo, MarkerFlags, ProcessSample, RunConfig, Sample,
-};
+use whyslow::model::{CollectionWindow, HostInfo, MarkerFlags, ProcessSample, RunConfig, Sample};
 
 fn config() -> RunConfig {
     RunConfig {
@@ -104,7 +102,11 @@ fn detects_cpu_saturation() {
         .find(|d| d.kind == whyslow::model::DiagnosisKind::CpuSaturation)
         .expect("cpu_saturation should be present");
 
-    assert!(cpu.confidence >= 0.60, "unexpected confidence: {}", cpu.confidence);
+    assert!(
+        cpu.confidence >= 0.60,
+        "unexpected confidence: {}",
+        cpu.confidence
+    );
 }
 
 #[test]
@@ -133,7 +135,11 @@ fn detects_memory_pressure() {
         .find(|d| d.kind == whyslow::model::DiagnosisKind::MemoryPressure)
         .expect("memory_pressure should be present");
 
-    assert!(mem.confidence >= 0.60, "unexpected confidence: {}", mem.confidence);
+    assert!(
+        mem.confidence >= 0.60,
+        "unexpected confidence: {}",
+        mem.confidence
+    );
 }
 
 #[test]
@@ -163,7 +169,11 @@ fn detects_background_scan() {
         .find(|d| d.kind == whyslow::model::DiagnosisKind::BackgroundScan)
         .expect("background_scan should be present");
 
-    assert!(bg.confidence >= 0.50, "unexpected confidence: {}", bg.confidence);
+    assert!(
+        bg.confidence >= 0.50,
+        "unexpected confidence: {}",
+        bg.confidence
+    );
 }
 
 #[test]

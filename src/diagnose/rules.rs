@@ -13,7 +13,11 @@ pub(super) fn cpu_saturation(
     let avg_cpu = summary.avg_cpu_percent?;
     let peak_cpu = summary.peak_cpu_percent.unwrap_or(avg_cpu);
 
-    let top_cpu = offenders.iter().take(3).map(|o| o.avg_cpu_percent).sum::<f32>();
+    let top_cpu = offenders
+        .iter()
+        .take(3)
+        .map(|o| o.avg_cpu_percent)
+        .sum::<f32>();
     let sustained = ramp(avg_cpu as f64, 60.0, 95.0);
     let peak = ramp(peak_cpu as f64, 75.0, 100.0);
     let dominance = ramp(top_cpu as f64, 30.0, 180.0);
@@ -58,11 +62,15 @@ pub(super) fn cpu_saturation(
         suggestions: vec![
             Suggestion {
                 action: "Pause or close the top CPU-heavy process first".to_string(),
-                rationale: "A single dominant process often provides immediate responsiveness gains.".to_string(),
+                rationale:
+                    "A single dominant process often provides immediate responsiveness gains."
+                        .to_string(),
             },
             Suggestion {
-                action: "Check whether antivirus scans, indexing, or build tasks are running".to_string(),
-                rationale: "These workloads can legitimately spike CPU and are usually deferrable.".to_string(),
+                action: "Check whether antivirus scans, indexing, or build tasks are running"
+                    .to_string(),
+                rationale: "These workloads can legitimately spike CPU and are usually deferrable."
+                    .to_string(),
             },
         ],
         partial_evidence: false,
@@ -121,7 +129,10 @@ pub(super) fn memory_pressure(
         },
         Evidence {
             label: "Duration profile".to_string(),
-            detail: format!("{} ({pressure_secs:.1}s above 85%)", duration_class(pressure_secs)),
+            detail: format!(
+                "{} ({pressure_secs:.1}s above 85%)",
+                duration_class(pressure_secs)
+            ),
         },
     ];
 
@@ -197,8 +208,7 @@ pub(super) fn disk_contention(
     }
 
     let contention_secs = sustained_seconds(window, |s| {
-        s.disk.busy_percent.unwrap_or(0.0) >= 80.0 ||
-            s.disk.avg_latency_ms.unwrap_or(0.0) >= 20.0
+        s.disk.busy_percent.unwrap_or(0.0) >= 80.0 || s.disk.avg_latency_ms.unwrap_or(0.0) >= 20.0
     });
 
     let mut evidence = vec![
@@ -289,7 +299,10 @@ pub(super) fn background_scan(
         .count() as f64
         / window.samples.len().max(1) as f64;
 
-    let cpu = matching.iter().map(|o| o.avg_cpu_percent as f64).sum::<f64>();
+    let cpu = matching
+        .iter()
+        .map(|o| o.avg_cpu_percent as f64)
+        .sum::<f64>();
     let io = matching
         .iter()
         .map(|o| o.avg_io_read_bytes_per_sec + o.avg_io_write_bytes_per_sec)
@@ -361,7 +374,10 @@ pub(super) fn update_activity(
         .count() as f64
         / window.samples.len().max(1) as f64;
 
-    let cpu = matching.iter().map(|o| o.avg_cpu_percent as f64).sum::<f64>();
+    let cpu = matching
+        .iter()
+        .map(|o| o.avg_cpu_percent as f64)
+        .sum::<f64>();
     let io = matching
         .iter()
         .map(|o| o.avg_io_read_bytes_per_sec + o.avg_io_write_bytes_per_sec)
@@ -444,11 +460,12 @@ pub(super) fn browser_bloat(
 
     let confidence = clamp_score(
         0.45 * ramp(avg_browser_count, 8.0, 50.0)
-            + 0.35 * ramp(
-                browser_memory as f64 / (1024.0 * 1024.0 * 1024.0),
-                1.5,
-                10.0,
-            )
+            + 0.35
+                * ramp(
+                    browser_memory as f64 / (1024.0 * 1024.0 * 1024.0),
+                    1.5,
+                    10.0,
+                )
             + 0.20 * ramp(browser_cpu, 5.0, 90.0),
     );
 
@@ -456,7 +473,8 @@ pub(super) fn browser_bloat(
         return None;
     }
 
-    let browser_heavy_secs = sustained_seconds(window, |s| s.marker_flags.browser_process_count >= 8);
+    let browser_heavy_secs =
+        sustained_seconds(window, |s| s.marker_flags.browser_process_count >= 8);
 
     Some(Diagnosis {
         kind: DiagnosisKind::BrowserBloat,
@@ -535,7 +553,12 @@ pub(super) fn dev_tool_storm(
     let confidence = clamp_score(
         0.40 * ramp(avg_dev_count, 4.0, 28.0)
             + 0.35 * ramp(dev_cpu, 8.0, 120.0)
-            + 0.25 * ramp((marker_ratio * 100.0) + (dev_io / (1024.0 * 1024.0)), 15.0, 140.0),
+            + 0.25
+                * ramp(
+                    (marker_ratio * 100.0) + (dev_io / (1024.0 * 1024.0)),
+                    15.0,
+                    140.0,
+                ),
     );
 
     if confidence < 0.25 {
@@ -590,7 +613,10 @@ pub(super) fn dev_tool_storm(
     })
 }
 
-fn sustained_seconds(window: &CollectionWindow, mut predicate: impl FnMut(&crate::model::Sample) -> bool) -> f64 {
+fn sustained_seconds(
+    window: &CollectionWindow,
+    mut predicate: impl FnMut(&crate::model::Sample) -> bool,
+) -> f64 {
     let samples = window.samples.iter().filter(|s| predicate(s)).count() as f64;
     samples * (window.interval_ms as f64 / 1000.0)
 }
